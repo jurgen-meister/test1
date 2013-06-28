@@ -39,7 +39,7 @@ class DbConfigTask extends AppShell {
  */
 	protected $_defaultConfig = array(
 		'name' => 'default',
-		'datasource' => 'Database/Mysql',
+		'datasource' => 'Database/Postgres',
 		'persistent' => 'false',
 		'host' => 'localhost',
 		'login' => 'root',
@@ -106,7 +106,7 @@ class DbConfigTask extends AppShell {
 				}
 			}
 
-			$datasource = $this->in(__d('cake_console', 'Datasource:'), array('Mysql', 'Postgres', 'Sqlite', 'Sqlserver'), 'Mysql');
+			$datasource = $this->in(__d('cake_console', 'Datasource:'), array('Mysql', 'Postgres', 'Sqlite', 'Sqlserver'), 'Postgres');
 
 			$persistent = $this->in(__d('cake_console', 'Persistent Connection?'), array('y', 'n'), 'n');
 			if (strtolower($persistent) == 'n') {
