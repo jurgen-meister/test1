@@ -1,9 +1,9 @@
 CREATE TABLE posts (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL,
     title VARCHAR(50),
     body TEXT,
-    created DATETIME DEFAULT NULL,
-    modified DATETIME DEFAULT NULL
+    created TIMESTAMP DEFAULT NULL,
+    modified TIMESTAMP DEFAULT NULL
 );
 
 INSERT INTO posts (title,body,created)
