@@ -7,55 +7,18 @@
  * PHP 5
  *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright 2005-2012, Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
  * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright 2005-2012, Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  * @link          http://cakephp.org CakePHP(tm) Project
  * @package       app.Config
  * @since         CakePHP(tm) v 0.2.9
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-
-// This is where we define the OpenShift specific secure variable functions
-include(dirname(dirname(dirname(dirname(__FILE__)))) . DS . 'libs' . DS . 'openshift.inc');
-
-// Set the default keys to use
-$_default_keys = array(
-    'Security.salt'       => 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi',
-    'Security.cipherSeed' => '76859309657453542496749683645'
-);
-
-// This function gets called by openshift_secure and passes an array
-function make_secure_key($args) {
-  $hash = $args['hash'];
-  $key  = $args['variable'];
-  $original = $args['original'];
-
-  $chars = '0123456789';
-  if ($key != 'Security.cipherSeed') {
-    $chars .= 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $chars .= '!@#$%^&*()';
-    $chars .= '-_ []{}<>~`+=,.;:/?|';
-  }
-
-  // Convert the hash to an int to seed the RNG
-  srand(hexdec(substr($hash,0,8)));
-  // Create a random string the same length as the default
-  $val = '';
-  for($i = 1; $i <= strlen($original); $i++){
-    $val .= substr( $chars, rand(0,strlen($chars))-1, 1);
-  }
-  // Reset the RNG
-  srand();
-  // Set the value
-  return $val;
-}
-
-// Generate OpenShift secure keys (or return defaults if not on OpenShift)
-$key_list = openshift_secure($_default_keys,'make_secure_key');
 
 /**
  * CakePHP Debug Level:
@@ -73,14 +36,15 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
 	Configure::write('debug', 2);
 
 /**
- * Configure the Error handler used to handle errors for your application.  By default
- * ErrorHandler::handleError() is used.  It will display errors using Debugger, when debug > 0
+ * Configure the Error handler used to handle errors for your application. By default
+ * ErrorHandler::handleError() is used. It will display errors using Debugger, when debug > 0
  * and log errors with CakeLog when debug = 0.
  *
  * Options:
  *
  * - `handler` - callback - The callback to handle errors. You can set this to any callable type,
- *    including anonymous functions.
+ *   including anonymous functions.
+ *   Make sure you add App::uses('MyHandler', 'Error'); when using a custom handler class
  * - `level` - int - The level of errors you are interested in capturing.
  * - `trace` - boolean - Include stack traces for errors in log files.
  *
@@ -93,16 +57,17 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
 	));
 
 /**
- * Configure the Exception handler used for uncaught exceptions.  By default,
+ * Configure the Exception handler used for uncaught exceptions. By default,
  * ErrorHandler::handleException() is used. It will display a HTML page for the exception, and
- * while debug > 0, framework errors like Missing Controller will be displayed.  When debug = 0,
+ * while debug > 0, framework errors like Missing Controller will be displayed. When debug = 0,
  * framework errors will be coerced into generic HTTP errors.
  *
  * Options:
  *
  * - `handler` - callback - The callback to handle exceptions. You can set this to any callback type,
  *   including anonymous functions.
- * - `renderer` - string - The class responsible for rendering uncaught exceptions.  If you choose a custom class you
+ *   Make sure you add App::uses('MyHandler', 'Error'); when using a custom handler class
+ * - `renderer` - string - The class responsible for rendering uncaught exceptions. If you choose a custom class you
  *   should place the file for that class in app/Lib/Error. This class needs to implement a render method.
  * - `log` - boolean - Should Exceptions be logged?
  *
@@ -128,7 +93,15 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
  * /app/.htaccess
  * /app/webroot/.htaccess
  *
- * And uncomment the App.baseUrl below:
+ * And uncomment the App.baseUrl below. But keep in mind
+ * that plugin assets such as images, CSS and Javascript files
+ * will not work without url rewriting!
+ * To work around this issue you should either symlink or copy
+ * the plugin assets into you app's webroot directory. This is
+ * recommended even when you are using mod_rewrite. Handling static
+ * assets through the Dispatcher is incredibly inefficient and
+ * included primarily as a development convenience - and
+ * thus not recommended for production applications.
  */
 	//Configure::write('App.baseUrl', env('SCRIPT_NAME'));
 
@@ -168,6 +141,16 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
 	//Configure::write('Cache.check', true);
 
 /**
+ * Enable cache view prefixes.
+ *
+ * If set it will be prepended to the cache name for view file caching. This is
+ * helpful if you deploy the same application via multiple subdomains and languages,
+ * for instance. Each version can then have its own view cache namespace.
+ * Note: The final cache file name will then be `prefix_cachefilename`.
+ */
+	//Configure::write('Cache.viewPrefix', 'prefix');
+
+/**
  * Defines the default error type when using the log() function. Used for
  * differentiating error logging and debugging. Currently PHP supports LOG_DEBUG.
  */
@@ -189,8 +172,8 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
  *    value to false, when dealing with older versions of IE, Chrome Frame or certain web-browsing devices and AJAX
  * - `Session.defaults` - The default configuration set to use as a basis for your session.
  *    There are four builtins: php, cake, cache, database.
- * - `Session.handler` - Can be used to enable a custom session handler.  Expects an array of of callables,
- *    that can be used with `session_save_handler`.  Using this option will automatically add `session.save_handler`
+ * - `Session.handler` - Can be used to enable a custom session handler. Expects an array of of callables,
+ *    that can be used with `session_save_handler`. Using this option will automatically add `session.save_handler`
  *    to the ini array.
  * - `Session.autoRegenerate` - Enabling this setting, turns on automatic renewal of sessions, and
  *    sessionids that change frequently. See CakeSession::$requestCountdown.
@@ -211,23 +194,25 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
  *
  */
 	Configure::write('Session', array(
-		'defaults' => 'php'
+		'defaults' => 'cake',
+		'cookie'=>'imexport',
+		'timeout'=>4320 // 4320 minutes => 3 days
 	));
 
 /**
  * The level of CakePHP security.
  */
-	Configure::write('Security.level', 'medium');
-
+	Configure::write('Security.level', 'low');	
+	
 /**
  * A random string used in security hashing methods.
  */
-	Configure::write('Security.salt', $key_list['Security.salt']);
+	Configure::write('Security.salt', 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi');
 
 /**
  * A random numeric string (digits only) used to encrypt/decrypt strings.
  */
-	Configure::write('Security.cipherSeed', $key_list['Security.cipherSeed']);
+	Configure::write('Security.cipherSeed', '76859309657453542496749683645');
 
 /**
  * Apply timestamps with the last modified time to static assets (js, css, images).
@@ -264,27 +249,87 @@ $key_list = openshift_secure($_default_keys,'make_secure_key');
 	Configure::write('Acl.database', 'default');
 
 /**
- * Uncomment this line and correct your server timezone to fix 
+ * Uncomment this line and correct your server timezone to fix
  * any date & time related errors.
  */
 	//date_default_timezone_set('UTC');
 
 /**
- * Pick the caching engine to use.  If APC is enabled use it.
- * If running via cli - apc is disabled by default. ensure it's available and enabled in this case
+ *
+ * Cache Engine Configuration
+ * Default settings provided below
+ *
+ * File storage engine.
+ *
+ * 	 Cache::config('default', array(
+ *		'engine' => 'File', //[required]
+ *		'duration' => 3600, //[optional]
+ *		'probability' => 100, //[optional]
+ * 		'path' => CACHE, //[optional] use system tmp directory - remember to use absolute path
+ * 		'prefix' => 'cake_', //[optional]  prefix every cache file with this string
+ * 		'lock' => false, //[optional]  use file locking
+ * 		'serialize' => true, [optional]
+ *	));
+ *
+ * APC (http://pecl.php.net/package/APC)
+ *
+ * 	 Cache::config('default', array(
+ *		'engine' => 'Apc', //[required]
+ *		'duration' => 3600, //[optional]
+ *		'probability' => 100, //[optional]
+ * 		'prefix' => Inflector::slug(APP_DIR) . '_', //[optional]  prefix every cache file with this string
+ *	));
+ *
+ * Xcache (http://xcache.lighttpd.net/)
+ *
+ * 	 Cache::config('default', array(
+ *		'engine' => 'Xcache', //[required]
+ *		'duration' => 3600, //[optional]
+ *		'probability' => 100, //[optional]
+ *		'prefix' => Inflector::slug(APP_DIR) . '_', //[optional] prefix every cache file with this string
+ *		'user' => 'user', //user from xcache.admin.user settings
+ *		'password' => 'password', //plaintext password (xcache.admin.pass)
+ *	));
+ *
+ * Memcache (http://www.danga.com/memcached/)
+ *
+ * 	 Cache::config('default', array(
+ *		'engine' => 'Memcache', //[required]
+ *		'duration' => 3600, //[optional]
+ *		'probability' => 100, //[optional]
+ * 		'prefix' => Inflector::slug(APP_DIR) . '_', //[optional]  prefix every cache file with this string
+ * 		'servers' => array(
+ * 			'127.0.0.1:11211' // localhost, default port 11211
+ * 		), //[optional]
+ * 		'persistent' => true, // [optional] set this to false for non-persistent connections
+ * 		'compress' => false, // [optional] compress data in Memcache (slower, but uses less memory)
+ *	));
+ *
+ *  Wincache (http://php.net/wincache)
+ *
+ * 	 Cache::config('default', array(
+ *		'engine' => 'Wincache', //[required]
+ *		'duration' => 3600, //[optional]
+ *		'probability' => 100, //[optional]
+ *		'prefix' => Inflector::slug(APP_DIR) . '_', //[optional]  prefix every cache file with this string
+ *	));
+ */
+
+/**
+ * Configure the cache handlers that CakePHP will use for internal
+ * metadata like class maps, and model schema.
+ *
+ * By default File is used, but for improved performance you should use APC.
  *
  * Note: 'default' and other application caches should be configured in app/Config/bootstrap.php.
- *       Please check the comments in boostrap.php for more info on the cache engines available 
- *       and their setttings.
+ *       Please check the comments in boostrap.php for more info on the cache engines available
+ *       and their settings.
  */
 $engine = 'File';
-if (extension_loaded('apc') && function_exists('apc_dec') && (php_sapi_name() !== 'cli' || ini_get('apc.enable_cli'))) {
-	$engine = 'Apc';
-}
 
 // In development mode, caches should expire quickly.
 $duration = '+999 days';
-if (Configure::read('debug') >= 1) {
+if (Configure::read('debug') > 0) {
 	$duration = '+10 seconds';
 }
 
@@ -292,7 +337,7 @@ if (Configure::read('debug') >= 1) {
 $prefix = 'myapp_';
 
 /**
- * Configure the cache used for general framework caching.  Path information,
+ * Configure the cache used for general framework caching. Path information,
  * object listings, and translation cache files are stored with this configuration.
  */
 Cache::config('_cake_core_', array(
@@ -304,7 +349,7 @@ Cache::config('_cake_core_', array(
 ));
 
 /**
- * Configure the cache for model and datasource caches.  This cache configuration
+ * Configure the cache for model and datasource caches. This cache configuration
  * is used to store schema descriptions, and table listings in connections.
  */
 Cache::config('_cake_model_', array(

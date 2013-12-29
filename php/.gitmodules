@@ -1,0 +1,7 @@
+[submodule "app/Plugin/Composer"]
+        path = app/Plugin/Composer
+        url = git://github.com/uzyn/cakephp-composer.git
+[submodule "app/Plugin/TwitterBootstrap"]
+        path = app/Plugin/TwitterBootstrap
+        url = git://github.com/slywalker/TwitterBootstrap.git
+        

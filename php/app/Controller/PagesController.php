@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Static content controller.
  *
@@ -18,7 +19,6 @@
  * @since         CakePHP(tm) v 0.2.9
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-
 App::uses('AppController', 'Controller');
 
 /**
@@ -31,27 +31,50 @@ App::uses('AppController', 'Controller');
  */
 class PagesController extends AppController {
 
-/**
- * Controller name
- *
- * @var string
- */
+	/**
+	 * Controller name
+	 *
+	 * @var string
+	 */
 	public $name = 'Pages';
 
-/**
- * This controller does not use a model
- *
- * @var array
- */
+	/**
+	 * This controller does not use a model
+	 *
+	 * @var array
+	 */
 	public $uses = array();
 
-/**
- * Displays a view
- *
- * @param mixed What page to display
- * @return void
- */
+	/*
+	  public  function isAuthorized($user){
+	  return true; //when is true there aren't permissions
+	  }
+	 */
+
+	//public $components = array('session');
+	/**
+	 * Displays a view
+	 *
+	 * @param mixed What page to display
+	 * @return void
+	 */
+	function beforeFilter() {
+		parent::beforeFilter();
+		$this->Auth->allow('ie_denied', 'phone_not_ready');  //without this will be redirected causing a loop
+	}
+
+	public function ie_denied() {
+		$this->layout = 'login';
+		//echo 'funciona';
+	}
+
+	public function phone_not_ready() {
+		$this->layout = 'login';
+//		//echo 'funciona';
+	}
+
 	public function display() {
+
 		$path = func_get_args();
 
 		$count = count($path);
@@ -72,4 +95,5 @@ class PagesController extends AppController {
 		$this->set(compact('page', 'subpage', 'title_for_layout'));
 		$this->render(implode('/', $path));
 	}
+
 }
