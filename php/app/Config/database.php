@@ -58,26 +58,35 @@
  * For MySQL to connect via socket specify the `unix_socket` parameter instead of `host` and `port`
  */
 class DATABASE_CONFIG {
+        public $default = array(
+                'datasource' => 'Database/Postgres',
+                'persistent' => false,
+                'host'       => '',
+                'port'       => '',
+                'login'      => '',
+                'password'   => '',
+                'database'   => '',
+                'prefix'     => '',
+                //'encoding' => 'utf8',
+        );
 
-	public $default = array(
-		'datasource' => 'Database/Postgres',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'postgres',
-		'password' => 'deftones',
-		'database' => 'imexport',
-		'prefix' => '',
-		//'encoding' => 'utf8',
-	);
+        public $test = array(
+                'datasource' => 'Database/Postgres',
+                'persistent' => false,
+                'host'       => '',
+                'port'       => '',
+                'login'      => '',
+                'password'   => '',
+                'database'   => 'test_database',
+                'prefix'     => '',
+                //'encoding' => 'utf8',
+        );
 
-	public $test = array(
-		'datasource' => 'Database/Mysql',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'user',
-		'password' => 'password',
-		'database' => 'test_database_name',
-		'prefix' => '',
-		//'encoding' => 'utf8',
-	);
+        public function __construct() {
+               $this->default['host']     = getenv("OPENSHIFT_POSTGRESQL_DB_HOST");
+               $this->default['port']     = getenv("OPENSHIFT_POSTGRESQL_DB_PORT");
+               $this->default['login']    = getenv("OPENSHIFT_POSTGRESQL_DB_USERNAME");
+               $this->default['password'] = getenv("OPENSHIFT_POSTGRESQL_DB_PASSWORD");
+               $this->default['database'] = getenv("OPENSHIFT_APP_NAME");
+        }
 }
